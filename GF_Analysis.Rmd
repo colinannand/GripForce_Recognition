@@ -1,0 +1,92 @@
+---
+title: "GF_Analysis"
+author: "Colin T. Annand"
+date: "3/31/2020"
+output: html_document
+---
+Nathan Lautz created a Grip Force, Picture naming task to investigaet ....
+
+The first step here is data extraction, pulling the ~27000 .txt files into a bit more coherent format so the participant data can be organized, reshaped and otherwise processed for statistical analysis. The experimental setup output is 4 text files per trial, 45 trials per block, and 4 blocks total. (4*45*4) = 720 .txt files * 38 Participants = 27350). Each trial will be collated into a single .csv file before later analysis (Code chunks 1-3).
+
+```{r setup, include=FALSE, echo=FALSE}
+## scanning function, skips headers, reads all data as numeric.
+GF_scan <- function(file){as.numeric(scan(file = file, what="numeric",skip = 1,quiet = T))} 
+
+#Filepaths to all trial .txt files.
+All_Subs <- list.files(path = "~/Desktop/GF_Experiment_Program/Participant_DATA", full.names = T,recursive = TRUE, pattern = ".txt" )
+
+#Another way to reference files - not used in this iteration.
+#All_Subs_SHORT <- gsub(x = All_Subs, pattern = "/Users/cannand/Desktop/GF_Experiment_Program/Participant_DATA/P[[:digit:]]/", replacement = "")
+#head(All_Subs_SHORT)
+
+#All files organized into a list:
+All_Subs_extracted <- lapply(All_Subs,GF_scan)
+```
+
+```{r} 
+## test block, for P1
+P1_Block1 <- list.files(path = "~/Desktop/GF_Experiment_Program/P1/", full.names = T)
+P1_Block1_SHORT <- gsub(x = P1_Block1, pattern = "/Users/cannand/Desktop/GF_Experiment_Program/P1//", replacement = "")
+head(P1_Block1_SHORT,20)
+head(P1_Block1,20)
+#Get all of Block one
+P1_Block_extracted <- lapply(P1_Block1,GF_scan)
+```
+
+```{r}
+recording_variability <- diff(P1_Block_extracted[[8]]) #differentiate the timesteps
+## I think there may be an issue with the FIRST row of all dataframes, in terms of the recording time.  Possible the PROCESSING::DRAW() loop of putting the image on screen significantly DELAYS the first timestep of recording.  Most timesteps are either 17ms (fast cycles) or 34ms (doubled/missed cycle)
+head(recording_variability,20)
+plot(1:length(recording_variability),recording_variability)
+hist(recording_variability[2:209])
+```
+CTA: Update - The code chunk should now extract all paricipant data, then the following chunk should organize said data into CSV files.  This is helpful in terms of overall organization, and this format is easier for me to pull into MATLAB to RESAMPLE (signal, timestamp, constant Hz rate) the timeseries. This is basically an interpolation respective to the recording timestamps. 
+
+Next: Write everything to .csv files (originally I was going to write the whole thing to one folder, but decided it made sense to write them to the original folders, so if needed, we can manually check .txt vs .csv files.
+```{r}
+#getwd()
+#fpath <- "/Users/cannand/Desktop/GF_Experiment_Program/CSVfiles/"
+ll <- length(All_Subs_extracted)
+temp <- data.frame()
+c <- 0
+for (t in 1:ll){
+  #name <- paste0(P1_Block1[t+c])
+  rm(temp)
+  temp <- data.frame(left = All_Subs_extracted[1+c][[1]],
+                     right = All_Subs_extracted[2+c][[1]],
+                     sound = All_Subs_extracted[3+c][[1]],
+                     time = All_Subs_extracted[4+c][[1]])
+
+write.csv(x = temp, file = paste0(All_Subs[c+1],".csv"))
+c <- c+4 #goes to the next 4 in the list. 
+}
+```
+That's it for the initial R preprocessing! Next step is to use Matlab to resample.  The output file structure will be identical, [leftGF,rightGF,sound,time] however the values will be slightly different. Timestamp specifically will have been changed to seconds, and the first value T0 ~= 0  ( .0001 (or similar)). 
+
+END -- CTA
+
+
+
+##############
+OLD
+```{r}
+#P1_T1 <- assign(paste0(P1_Block1[a]), data.frame(left = P1_Block_extracted[1][[1]],
+#                                          right = P1_Block_extracted[2][[1]],
+#                                          sound = P1_Block_extracted[3][[1]],
+#                                          time = P1_Block_extracted[4][[1]]))
+
+#write.csv(x = P1_T1, file = paste(P1_Block1[1],".csv"))
+```
+OLD FUNCTION
+```{r}
+#'destructive scanning...'
+get_GF_trials <- function(filelist){
+  left <- as.numeric(scan(file = filelist[1],what = "numeric",skip = 1, quiet = T))
+  right <- as.numeric(scan(file = filelist[2],what = "numeric",skip = 1, quiet = T))
+  time_mil <- as.numeric(scan(file = filelist[3],what = "numeric",skip = 1, quiet = T))
+  l <- length(filelist)
+  filelist <- filelist[5:l]
+  result <- cbind(left,right,time_mil)
+return(result)
+}
+```
