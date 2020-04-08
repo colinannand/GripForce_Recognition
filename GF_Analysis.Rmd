@@ -4,7 +4,7 @@ author: "Colin T. Annand"
 date: "3/31/2020"
 output: html_document
 ---
-Nathan Lautz created a Grip Force, Picture naming task to investigaet ....
+Nathan Lautz created a grip force, picture naming task to investigate embodied aspects of tool concepts.
 
 The first step here is data extraction, pulling the ~27000 .txt files into a bit more coherent format so the participant data can be organized, reshaped and otherwise processed for statistical analysis. The experimental setup output is 4 text files per trial, 45 trials per block, and 4 blocks total. (4*45*4) = 720 .txt files * 38 Participants = 27350). Each trial will be collated into a single .csv file before later analysis (Code chunks 1-3).
 
@@ -14,6 +14,11 @@ GF_scan <- function(file){as.numeric(scan(file = file, what="numeric",skip = 1,q
 
 #Filepaths to all trial .txt files.
 All_Subs <- list.files(path = "~/Desktop/GF_Experiment_Program/Participant_DATA", full.names = T,recursive = TRUE, pattern = ".txt" )
+
+
+#######  NATE: If we want to make this code able to be run by anyone from the GitHub repository, should we also upload the raw data files and change the filepath arguments?  Not sure how to do this (e.g. setting the working directory to the GitHub repository and then using a URL as the path?).  
+#######
+
 
 #Another way to reference files - not used in this iteration.
 #All_Subs_SHORT <- gsub(x = All_Subs, pattern = "/Users/cannand/Desktop/GF_Experiment_Program/Participant_DATA/P[[:digit:]]/", replacement = "")
@@ -90,3 +95,13 @@ get_GF_trials <- function(filelist){
 return(result)
 }
 ```
+
+
+Nate just messing around:
+```{r}
+head(Sub_List[[1]][1:4])
+mean(Sub_List[[1]]$rs_left)
+mean(Sub_List[[1]]$rs_right)
+
+```
+
