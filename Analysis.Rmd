@@ -1,0 +1,58 @@
+---
+title: "gfAnalysis"
+author: "Colin T. Annand"
+date: "4/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(echo = TRUE)
+load("All_Subjs.Rdata")
+```
+Code chunk below was used to name and create All_Subs.Rdata.
+```{r}
+Subs_name_list <- list.files(path = "~/Documents/GitHub/GripForce_Recognition", full.names = T,recursive = TRUE, pattern = ".csv" )
+
+library(data.table)
+Sub_List <- lapply(Subs_name_list,fread)
+names(Sub_List) <- gsub(x = Subs_name_list, pattern = "/Users/cannand/Documents/GitHub/GripForce_Recognition/SubjDATA/P1/", replacement = "")
+```
+Some basic plotting ideas (Grip force changes and response time)
+```{r}
+#ex
+trial_ex <- Sub_List[[1]]
+head(trial_ex,2)
+# plot
+plot(trial_ex$tx,trial_ex$rs_left, type = "l", col = "blue") +
+points(trial_ex$tx,trial_ex$rs_right,type = "l", col = "red") +
+
+#extract RT from fname and plot as line
+name <- names(Sub_List[1])
+t1_info <- strsplit(name,split = "_")
+RT <- (as.numeric(t1_info[[1]][8]))/1000
+abline(h=0,v=RT, col = "green")
+
+```
+
+```{r}
+getalign <- function(df){
+  name <- deparse(substitute(df))
+  cond_info <- strsplit(name, split="_")  
+  if (cond_info[11] == "L.jpg") {
+    Aligned_SD <- var(df$rs_left)
+    UnalignedSD <- var(df$rs_right)
+  } else {
+    Aligned_SD <- var(df$rs_right)
+    UnalignedSD <- var(df$rs_left)
+  }
+  return(c(Aligned_SD,UnalignedSD))
+}
+```
+
+```{r}
+ll <- length(Sub_List)
+for (i in 1:ll){
+  cbind(var_data,getalign(Sub_List[[1]]))
+}
+```
+
