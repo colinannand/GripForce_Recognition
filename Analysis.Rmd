@@ -57,6 +57,7 @@ for (i in 1:length(Sub_List)){  #fill the array using getalign() function
   blank_array[i,2] <- temp_result[2]
 }
 nn <- names(Sub_List) #names from Sub list
+nn <- gsub(nn,pattern = "/Users/cannand/Documents/GitHub/GripForce_Recognition/SubjDATA/",replacement = "")
 
 tt_align <- data.frame(nn,blank_array[,1],blank_array[,2]) #new_dataframe(can be exported if needed)
 names(tt_align) <- c("Subj&Trial","AlignedVAR","UnalignedVAR") #name the dataframe
@@ -65,17 +66,42 @@ save(tt_align,file = "tt_align.Rdata")
 #load("tt_align.Rdata")
 t.test(tt_align$AlignedVAR,tt_align$UnalignedVAR)
 
+library("tidyr") 
+ALL_t.test <- separate(data = tt_align, col = "Subj&Trial", into = c("Subj","1","Block","1","Trial","1","RT","5307","BA1","grizzly","L.jpg","Lvalue.txt.csv"),sep = "_", remove = T, fill = "right")
+
+Final_Set <- subset(ALL_t.test,select = c("1","1","1","5307","BA1","grizzly","L.jpg","AlignedVAR","UnalignedVAR"))
+names(Final_Set) <- c("Subj","Block","Trial","RT","Cond","stimuli","direction","AlignedVAR","UnalignedVAR")
+
+
+Final_Set$Cond <- gsub(Final_Set$Cond,pattern = "[[:digit:]]",replacement = "")
+
+Final_Set$Cond <- gsub(Final_Set$Cond,pattern = "A",replacement = "Animal")
+Final_Set$Cond <- gsub(Final_Set$Cond,pattern = "T",replacement = "Tool")
+Final_Set$direction <- gsub(Final_Set$direction,pattern = "L.jpg",replacement = "Left")
+Final_Set$direction <- gsub(Final_Set$direction,pattern = "R.jpg",replacement = "Right")
+
+head(Final_Set)
+write.csv(Final_Set,"GF_Variance_by_Hand_ALL_Subs.csv",row.names = F)
 ```
 
+########## This is the output format we want (creating above)
 OUTPUT FORMAT
 Subj  / TrialN  / Block / Stim  / Unaligned / Aligned / RT  
 1       2         1       grizzly       345       123     800
 
+```{r}
+P1 <- unlist(strsplit(names(Sub_List[1]),split = "_"))
+P1
+
+ALL_DATA <- data.frame(P1[2],P1[4],P1[6],P1[8],tt_align$AlignedVAR,tt_align[1]$UnalignedVAR)
+names(ALL_DATA) <- c(P1[1],P1[3],P1[5],P1[7])
 
 
-alignedVar, responseTime
-name <- deparse(substitute(df))
-  cond_info <- strsplit(name, split="_")  
+ALL_DATA
+
+```
+
+cond_info <- strsplit(name, split="_")  
 
 
 For every trial, compare aligned variance to unaligned variance : Ignore participant, Ignore Block, Ignoring Condition.
