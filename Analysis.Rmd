@@ -47,12 +47,36 @@ getalign <- function(df){
   }
   return(c(Aligned_SD,UnalignedSD))
 }
+
+load("All_Subjs.Rdata") 
+blank_array <- array(data = 0,dim = c(6840,2)) #make array of the list size, with 2 columns for align/unalign
+
+for (i in 1:length(Sub_List)){  #fill the array using getalign() function
+  temp_result <- getalign(Sub_List[[i]])
+  blank_array[i,1] <- temp_result[1]
+  blank_array[i,2] <- temp_result[2]
+}
+nn <- names(Sub_List) #names from Sub list
+
+tt_align <- data.frame(nn,blank_array[,1],blank_array[,2]) #new_dataframe(can be exported if needed)
+names(tt_align) <- c("Subj&Trial","AlignedVAR","UnalignedVAR") #name the dataframe
+save(tt_align,file = "tt_align.Rdata")
+
+#load("tt_align.Rdata")
+t.test(tt_align$AlignedVAR,tt_align$UnalignedVAR)
+
 ```
 
-```{r}
-ll <- length(Sub_List)
-for (i in 1:ll){
-  cbind(var_data,getalign(Sub_List[[1]]))
-}
-```
+OUTPUT FORMAT
+Subj  / TrialN  / Block / Stim  / Unaligned / Aligned / RT  
+1       2         1       grizzly       345       123     800
+
+
+
+alignedVar, responseTime
+name <- deparse(substitute(df))
+  cond_info <- strsplit(name, split="_")  
+
+
+For every trial, compare aligned variance to unaligned variance : Ignore participant, Ignore Block, Ignoring Condition.
 
